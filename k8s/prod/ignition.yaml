@@ -32,7 +32,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ignition-service
-  namespace: ignition-dev
+  namespace: ignition-prod
 spec:
   type: NodePort
   selector:
@@ -41,4 +41,4 @@ spec:
     - protocol: TCP
       port: 8088
       targetPort: 8088
-      nodePort: 30088 # Access via http://localhost:30088
+      nodePort: 30089 # Access via http://localhost:30088
