@@ -1,0 +1,41 @@
+apiVersion: kargo.akuity.io/v1alpha1
+kind: Stage
+metadata:
+  name: dev
+  namespace: ignition-pipeline
+spec:
+  requestedFreight:
+  - origin:
+      kind: Warehouse
+      name: ignition-warehouse
+    sources:
+      direct: true
+  promotionTemplate:
+    spec:
+      steps:
+      - uses: argocd-update
+        config:
+          apps:
+          - name: ignition-dev
+            namespace: argocd
+---
+apiVersion: kargo.akuity.io/v1alpha1
+kind: Stage
+metadata:
+  name: prod
+  namespace: ignition-pipeline
+spec:
+  requestedFreight:
+  - origin:
+      kind: Warehouse
+      name: ignition-warehouse
+    sources:
+      stages: [dev] # Only allows freight that passed Dev
+  promotionTemplate:
+    spec:
+      steps:
+      - uses: argocd-update
+        config:
+          apps:
+          - name: ignition-prod
+            namespace: argocd
