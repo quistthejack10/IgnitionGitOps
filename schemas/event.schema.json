@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://forge-mes.dev/schemas/event.schema.json",
+  "title": "Forge Event Envelope",
+  "description": "The envelope for every message published on the internal NATS bus. Producers and consumers (Python services and the Go flow-engine) validate against this contract; this is the polyglot seam.",
+  "type": "object",
+  "required": ["id", "type", "source", "time", "data"],
+  "additionalProperties": false,
+  "properties": {
+    "specversion": {
+      "type": "string",
+      "const": "1.0",
+      "description": "CloudEvents-aligned envelope version."
+    },
+    "id": {
+      "type": "string",
+      "description": "Unique event id (UUID). Also used as the idempotency key for at-least-once MES actions."
+    },
+    "type": {
+      "type": "string",
+      "description": "Reverse-DNS event type, e.g. 'dev.forge.tag.changed', 'dev.forge.entity.created', 'dev.forge.workorder.transitioned'.",
+      "examples": ["dev.forge.tag.changed", "dev.forge.entity.created"]
+    },
+    "source": {
+      "type": "string",
+      "description": "Logical origin, e.g. 'connectivity/opcua/conn-123' or 'flow-engine/flow-abc'."
+    },
+    "subject": {
+      "type": "string",
+      "description": "Optional UNS-style path this event maps to, e.g. 'site1/areaA/line2/cell3/press'."
+    },
+    "time": {
+      "type": "string",
+      "format": "date-time",
+      "description": "RFC3339 event timestamp (UTC)."
+    },
+    "datacontenttype": {
+      "type": "string",
+      "default": "application/json"
+    },
+    "traceparent": {
+      "type": "string",
+      "description": "W3C trace context for cross-service observability."
+    },
+    "data": {
+      "description": "Event payload. Shape depends on 'type'.",
+      "type": "object"
+    }
+  }
+}

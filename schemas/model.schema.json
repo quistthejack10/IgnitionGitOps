@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://forge-mes.dev/schemas/model.schema.json",
+  "title": "Forge Data Model Definition",
+  "description": "A user-defined ontology emitted by Model Studio: entity types, their properties, and named directed relationship types. graph-core consumes this to generate storage (Postgres+AGE) and the GraphQL + REST APIs. Shipped MES app packs are instances of this schema.",
+  "type": "object",
+  "required": ["name", "version", "entityTypes", "relationshipTypes"],
+  "additionalProperties": false,
+  "properties": {
+    "name": { "type": "string", "description": "Model/pack name, e.g. 'isa95-starter'." },
+    "version": { "type": "integer", "minimum": 1, "description": "Model version; renames preserve data, deletes require migration (FR-M4)." },
+    "description": { "type": "string" },
+    "entityTypes": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/entityType" }
+    },
+    "relationshipTypes": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/relationshipType" }
+    }
+  },
+  "$defs": {
+    "propertyType": {
+      "type": "string",
+      "enum": ["string", "number", "boolean", "datetime", "enum", "json", "fileref"]
+    },
+    "property": {
+      "type": "object",
+      "required": ["name", "type"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "type": { "$ref": "#/$defs/propertyType" },
+        "required": { "type": "boolean", "default": false },
+        "enumValues": { "type": "array", "items": { "type": "string" }, "description": "Required when type = 'enum'." },
+        "validation": { "type": "object", "description": "Optional validation rules (min, max, regex, ...).", "additionalProperties": true },
+        "computed": { "type": "boolean", "default": false, "description": "Computed property (FR-M1, P1)." }
+      }
+    },
+    "telemetryChannel": {
+      "type": "object",
+      "required": ["name"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "description": "e.g. 'temperature'." },
+        "unit": { "type": "string" },
+        "retention": { "type": "string", "description": "Per-channel retention policy (raw + downsampled tiers)." }
+      }
+    },
+    "entityType": {
+      "type": "object",
+      "required": ["name"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "description": "e.g. 'Equipment', 'Lot', 'WorkOrder'." },
+        "properties": { "type": "array", "items": { "$ref": "#/$defs/property" } },
+        "telemetryChannels": {
+          "type": "array",
+          "description": "Time-series channels bound to this entity (FR-M7).",
+          "items": { "$ref": "#/$defs/telemetryChannel" }
+        },
+        "display": {
+          "type": "object",
+          "description": "Label template, icon, color (FR-M1).",
+          "properties": {
+            "labelTemplate": { "type": "string" },
+            "icon": { "type": "string" },
+            "color": { "type": "string" }
+          }
+        }
+      }
+    },
+    "relationshipType": {
+      "type": "object",
+      "required": ["name", "from", "to"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "description": "Named, directed, e.g. 'CONSUMED_BY', 'PART_OF'." },
+        "from": { "type": "string", "description": "Source entity type name." },
+        "to": { "type": "string", "description": "Target entity type name." },
+        "cardinality": {
+          "type": "string",
+          "enum": ["one-to-one", "one-to-many", "many-to-one", "many-to-many"],
+          "default": "many-to-many"
+        },
+        "properties": {
+          "type": "array",
+          "description": "Properties on the edge, e.g. quantity, timestamp (FR-M2).",
+          "items": { "$ref": "#/$defs/property" }
+        }
+      }
+    }
+  }
+}
