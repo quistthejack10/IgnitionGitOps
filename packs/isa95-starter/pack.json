@@ -1,0 +1,11 @@
+{
+  "name": "isa95-starter",
+  "version": 1,
+  "kind": "model-pack",
+  "description": "ISA-95 starter ontology (FR-M3).",
+  "contents": {
+    "models": ["model.json"],
+    "flows": [],
+    "screens": []
+  }
+}

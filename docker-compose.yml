@@ -1,0 +1,64 @@
+# Forge single-node dev stack (PRD §6.1 single-node gateway).
+#
+# M0 brings up the INFRA dependencies only (graph DB, event bus, MQTT/UNS, identity). The
+# application services (api-gateway, graph-core, connectivity, flow-engine) are declared but
+# commented until they are wired end-to-end in M1+. Bring up infra with:
+#
+#     docker compose up -d postgres nats mqtt keycloak
+
+services:
+  # Postgres + Apache AGE (graph) + TimescaleDB (time-series) — one engine (ADR-0001).
+  # NOTE: pin to an image that bundles AGE + Timescale, or build one, before M1.
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: forge
+      POSTGRES_PASSWORD: forge
+      POSTGRES_DB: forge
+    ports: ["5432:5432"]
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U forge"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # NATS JetStream — internal event bus (ADR-0003).
+  nats:
+    image: nats:2.10
+    command: ["-js", "-m", "8222"]
+    ports: ["4222:4222", "8222:8222"]
+
+  # Embedded MQTT broker — exposes the UNS (ADR-0003, FR-C3).
+  mqtt:
+    image: eclipse-mosquitto:2
+    ports: ["1883:1883"]
+    volumes: ["./deploy/compose/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro"]
+
+  # Keycloak — OIDC identity, federates to AD/LDAP (FR-P1).
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0
+    command: ["start-dev"]
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    ports: ["8080:8080"]
+
+  # --- Application services (wired in M1+) ---
+  # api-gateway:
+  #   build: { context: ., dockerfile: services/api-gateway/Dockerfile }
+  #   ports: ["8000:8000"]
+  #   environment:
+  #     FORGE_NATS_URL: nats://nats:4222
+  #     FORGE_POSTGRES_DSN: postgresql://forge:forge@postgres:5432/forge
+  #   depends_on: [postgres, nats]
+  #
+  # flow-engine:
+  #   build: { context: ., dockerfile: flow-engine/Dockerfile }
+  #   ports: ["8081:8081"]
+  #   environment:
+  #     FORGE_NATS_URL: nats://nats:4222
+  #   depends_on: [nats]
+
+volumes:
+  pgdata:

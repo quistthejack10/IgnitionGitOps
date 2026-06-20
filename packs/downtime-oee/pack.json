@@ -1,0 +1,8 @@
+{
+  "name": "downtime-oee",
+  "version": 0,
+  "kind": "app-pack",
+  "description": "Downtime & OEE (PRD FR-A2): downtime events from equipment-state flows, user-defined reason-code tree, operator reason assignment, OEE (availability x performance x quality) as continuous aggregates, Pareto + trend dashboards. Built in M5.",
+  "dependsOn": ["isa95-starter"],
+  "contents": { "models": [], "flows": [], "screens": [] }
+}

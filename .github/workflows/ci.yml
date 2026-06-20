@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install ruff
+      - name: Ruff lint
+        run: ruff check libs/forge-common services/api-gateway services/graph-core services/connectivity
+
+  go:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+      - name: Vet & build
+        working-directory: flow-engine
+        run: go vet ./... && go build ./...
+
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install & build
+        working-directory: web
+        run: npm install && npm run build
+
+  schemas:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install check-jsonschema
+      - name: Validate JSON Schemas are well-formed
+        run: check-jsonschema --check-metaschema schemas/event.schema.json schemas/flow.schema.json schemas/model.schema.json
+      - name: Validate ISA-95 pack against model schema
+        run: check-jsonschema --schemafile schemas/model.schema.json packs/isa95-starter/model.json

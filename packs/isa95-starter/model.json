@@ -1,0 +1,100 @@
+{
+  "$schema": "../../schemas/model.schema.json",
+  "name": "isa95-starter",
+  "version": 1,
+  "description": "Optional, importable ISA-95-aligned starter ontology (PRD FR-M3). Adopt wholesale, extend, rename to your dialect ('Heat' instead of 'Batch'), or ignore. Encodes ISA-95 object relationships so genealogy and scheduling work out of the box.",
+  "entityTypes": [
+    {
+      "name": "Equipment",
+      "display": { "labelTemplate": "{name}", "icon": "cube", "color": "#4c8bf5" },
+      "properties": [
+        { "name": "name", "type": "string", "required": true },
+        { "name": "level", "type": "enum", "enumValues": ["Site", "Area", "Line", "Cell", "Unit"], "required": true },
+        { "name": "code", "type": "string" }
+      ],
+      "telemetryChannels": [
+        { "name": "state", "unit": "enum" },
+        { "name": "count", "unit": "pcs" }
+      ]
+    },
+    {
+      "name": "MaterialDefinition",
+      "properties": [
+        { "name": "name", "type": "string", "required": true },
+        { "name": "uom", "type": "string" }
+      ]
+    },
+    {
+      "name": "MaterialLot",
+      "properties": [
+        { "name": "lotId", "type": "string", "required": true },
+        { "name": "quantity", "type": "number" },
+        { "name": "status", "type": "enum", "enumValues": ["Available", "Consumed", "Hold", "Scrapped"] }
+      ]
+    },
+    {
+      "name": "MaterialSublot",
+      "properties": [
+        { "name": "sublotId", "type": "string", "required": true },
+        { "name": "quantity", "type": "number" }
+      ]
+    },
+    {
+      "name": "Personnel",
+      "properties": [
+        { "name": "name", "type": "string", "required": true },
+        { "name": "badgeId", "type": "string" }
+      ]
+    },
+    {
+      "name": "WorkOrder",
+      "display": { "labelTemplate": "WO {orderNumber}", "color": "#f5a623" },
+      "properties": [
+        { "name": "orderNumber", "type": "string", "required": true },
+        { "name": "state", "type": "enum", "enumValues": ["Created", "Released", "Running", "Held", "Complete", "Closed"], "required": true },
+        { "name": "quantityOrdered", "type": "number" },
+        { "name": "quantityProduced", "type": "number" }
+      ]
+    },
+    {
+      "name": "JobOrder",
+      "properties": [
+        { "name": "jobId", "type": "string", "required": true },
+        { "name": "scheduledStart", "type": "datetime" }
+      ]
+    },
+    {
+      "name": "JobResponse",
+      "properties": [
+        { "name": "responseId", "type": "string", "required": true },
+        { "name": "actualStart", "type": "datetime" },
+        { "name": "actualEnd", "type": "datetime" }
+      ]
+    },
+    {
+      "name": "OperationsDefinition",
+      "properties": [
+        { "name": "name", "type": "string", "required": true }
+      ]
+    },
+    {
+      "name": "OperationsSegment",
+      "properties": [
+        { "name": "name", "type": "string", "required": true },
+        { "name": "sequence", "type": "number" }
+      ]
+    }
+  ],
+  "relationshipTypes": [
+    { "name": "PART_OF", "from": "Equipment", "to": "Equipment", "cardinality": "many-to-one" },
+    { "name": "OF_DEFINITION", "from": "MaterialLot", "to": "MaterialDefinition", "cardinality": "many-to-one" },
+    { "name": "HAS_SUBLOT", "from": "MaterialLot", "to": "MaterialSublot", "cardinality": "one-to-many" },
+    { "name": "CONSUMED_BY", "from": "MaterialLot", "to": "WorkOrder", "cardinality": "many-to-many", "properties": [ { "name": "quantity", "type": "number" }, { "name": "timestamp", "type": "datetime" } ] },
+    { "name": "PRODUCED_BY", "from": "MaterialLot", "to": "WorkOrder", "cardinality": "many-to-one", "properties": [ { "name": "quantity", "type": "number" }, { "name": "timestamp", "type": "datetime" } ] },
+    { "name": "RUNS_ON", "from": "WorkOrder", "to": "Equipment", "cardinality": "many-to-one" },
+    { "name": "FULFILLS", "from": "JobOrder", "to": "WorkOrder", "cardinality": "many-to-one" },
+    { "name": "RESPONSE_TO", "from": "JobResponse", "to": "JobOrder", "cardinality": "many-to-one" },
+    { "name": "PERFORMED_BY", "from": "JobResponse", "to": "Personnel", "cardinality": "many-to-many" },
+    { "name": "HAS_SEGMENT", "from": "OperationsDefinition", "to": "OperationsSegment", "cardinality": "one-to-many" }
+  ]
+}
