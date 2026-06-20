@@ -7,7 +7,6 @@ Basic256Sha256 + username/cert auth, auto-reconnect with subscription transfer (
 from __future__ import annotations
 
 from collections.abc import AsyncIterator
-from typing import Any
 
 from forge_common.events import Event
 

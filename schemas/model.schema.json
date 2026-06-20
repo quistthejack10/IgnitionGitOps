@@ -7,6 +7,7 @@
   "required": ["name", "version", "entityTypes", "relationshipTypes"],
   "additionalProperties": false,
   "properties": {
+    "$schema": { "type": "string", "description": "Optional JSON Schema reference for editor tooling." },
     "name": { "type": "string", "description": "Model/pack name, e.g. 'isa95-starter'." },
     "version": { "type": "integer", "minimum": 1, "description": "Model version; renames preserve data, deletes require migration (FR-M4)." },
     "description": { "type": "string" },

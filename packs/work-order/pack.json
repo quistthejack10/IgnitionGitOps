@@ -1,0 +1,8 @@
+{
+  "name": "work-order",
+  "version": 0,
+  "kind": "app-pack",
+  "description": "Work order execution (PRD FR-A1): state machine (Created->Released->Running->Held->Complete->Closed), operation steps, dispatch list screen, operator start/stop/count/scrap. Built in M5 on isa95-starter entities.",
+  "dependsOn": ["isa95-starter"],
+  "contents": { "models": [], "flows": [], "screens": [] }
+}
