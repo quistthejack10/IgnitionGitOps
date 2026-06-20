@@ -24,6 +24,9 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: "1.22"
+      - name: Verify go.sum is tidy
+        working-directory: flow-engine
+        run: go mod verify
       - name: Vet & build
         working-directory: flow-engine
         run: go vet ./... && go build ./...
