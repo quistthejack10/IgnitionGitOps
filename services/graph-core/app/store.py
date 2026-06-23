@@ -46,9 +46,15 @@ class PropertyGraphStore(ABC):
 
 
 async def _init_connection(conn: asyncpg.Connection) -> None:
-    """Per-connection AGE setup (asyncpg pool `init` hook)."""
+    """Per-connection AGE setup (asyncpg pool `init` hook).
+
+    Note: `search_path` is NOT set here — the pool runs `RESET ALL` when recycling a
+    connection, which would wipe a session-level SET. It is instead passed via
+    `server_settings` in connect() so it becomes the connection default and survives resets.
+    `LOAD 'age'` loads the library into the backend process (persists across resets); it is a
+    no-op when the server already has `shared_preload_libraries = 'age'`.
+    """
     await conn.execute("LOAD 'age'")
-    await conn.execute('SET search_path = ag_catalog, "$user", public')
     # Register agtype as text so asyncpg can decode it without the apache-age driver.
     await conn.set_type_codec(
         "agtype",
@@ -89,7 +95,13 @@ class AgeStore(PropertyGraphStore):
         self._pool: asyncpg.Pool | None = None
 
     async def connect(self) -> None:
-        self._pool = await asyncpg.create_pool(self._dsn, init=_init_connection)
+        # search_path via server_settings so ag_catalog (cypher(), agtype) resolves on every
+        # pooled connection, surviving the pool's RESET ALL on release.
+        self._pool = await asyncpg.create_pool(
+            self._dsn,
+            init=_init_connection,
+            server_settings={"search_path": 'ag_catalog, "$user", public'},
+        )
 
     async def close(self) -> None:
         if self._pool is not None:
